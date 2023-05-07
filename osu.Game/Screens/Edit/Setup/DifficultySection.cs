@@ -19,6 +19,7 @@ namespace osu.Game.Screens.Edit.Setup
         private LabelledSliderBar<float> healthDrainSlider = null!;
         private LabelledSliderBar<float> approachRateSlider = null!;
         private LabelledSliderBar<float> overallDifficultySlider = null!;
+        private LabelledSliderBar<double> baseSliderVelocity = null!;
 
         public override LocalisableString Title => EditorSetupStrings.DifficultyHeader;
 
@@ -79,10 +80,26 @@ namespace osu.Game.Screens.Edit.Setup
                         Precision = 0.1f,
                     }
                 },
+
+                baseSliderVelocity = new LabelledSliderBar<double>
+                {
+                    Label = "Base Slider Velocity",
+                    FixedLabelWidth = LABEL_WIDTH,
+                    Description ="The initial multiplier for the velocity of which sliders are played at.",
+                    Current = new BindableDouble(Beatmap.Difficulty.SliderMultiplier)
+                    {
+                        Default = 1.0,
+                        MinValue = 0.4,
+                        MaxValue = 3.6,
+                        Precision = 0.1f,
+                    }
+                },
             };
 
             foreach (var item in Children.OfType<LabelledSliderBar<float>>())
                 item.Current.ValueChanged += onValueChanged;
+
+            baseSliderVelocity.Current.ValueChanged += onValueChanged;
         }
 
         private void onValueChanged(ValueChangedEvent<float> args)
@@ -93,6 +110,14 @@ namespace osu.Game.Screens.Edit.Setup
             Beatmap.Difficulty.DrainRate = healthDrainSlider.Current.Value;
             Beatmap.Difficulty.ApproachRate = approachRateSlider.Current.Value;
             Beatmap.Difficulty.OverallDifficulty = overallDifficultySlider.Current.Value;
+
+            Beatmap.UpdateAllHitObjects();
+            Beatmap.SaveState();
+        }
+
+        private void onValueChanged(ValueChangedEvent<double> args)
+        {
+            Beatmap.Difficulty.SliderMultiplier = baseSliderVelocity.Current.Value;
 
             Beatmap.UpdateAllHitObjects();
             Beatmap.SaveState();
